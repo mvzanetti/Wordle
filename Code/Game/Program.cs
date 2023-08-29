@@ -5,6 +5,7 @@ using System.Collections.Generic; // For arguments parsing
 using System.IO; // For reading files
 using System.Linq.Expressions;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace Game
 {
@@ -21,11 +22,11 @@ namespace Game
             {
                 if (args[i].StartsWith("--"))
                 {
-                    if (i + 1 < args.Length)
-                    {
-                        argumentMap[args[i].Substring(2)] = args[i + 1];
+                     //if (i + 1 < args.Length)
+                    //{
+                        argumentMap[args[i].Substring(2)] = args[i].Substring(2);
                         i++;
-                    }
+                    //}
                 }
                 else if (args[i].StartsWith("-") && args[i].Length == 2) 
                 {
@@ -76,7 +77,9 @@ namespace Game
         {
             if (!this._isRandomGame)
             {
-                return null;
+                Console.WriteLine("your guess:{0}, the word:{1}, the score:{2}", this._guess, this._word, getGameResult(this._guess, this._word));
+
+                return getGameResult(this._guess, this._word);
             }
             else
             {
@@ -91,11 +94,18 @@ namespace Game
             }
         }
 
-        private string getGameResult(string guess, string word) 
+
+        // Returns game result as a string of 5 numbers. First input is the guess, and the second one is the word to be tested against. Like the Wordle game, 0 means an error (grey), 1 means a correct letter but not on the spot (yellow), and 2 means a match on that spot (green).
+        private string getGameResult(string guess, string word)
         {
 
             string result = "";
 
+            // This function still fails with -> g= bwosh, w = swosh. Need to fix.
+
+            bool[] guesses_result = {false,false,false,false,false};
+
+            // Aux is a variable to check if a match has not been made inside the inner loop. if not, we nee to put a 0.
             bool aux = false;
 
             // First loop to run on each letter separately
@@ -110,19 +120,27 @@ namespace Game
                 for (int j = 0; j < guess.Length; j++) 
                 {
                     aux = false;
+
                     if (String.Equals(guess[i], word[j]))
                     {
-                        if (i == j)
+
+                        if (guesses_result[j] == false)
                         {
-                            result += "2";
-                            break;
-                        }
-                        else
-                        {
-                            result += "1";
-                            break;
+
+                            guesses_result[j] = true;
+                            if (i == j)
+                            {
+                                result += "2";
+                                break;
+                            }
+                            else
+                            {
+                                result += "1";
+                                break;
+                            }
                         }
                     }
+                    // remove unnecessary else
                     else 
                     {
                         
@@ -198,21 +216,79 @@ namespace Game
                 // arguments
                 //foreach (s)
 
-                Console.WriteLine("arg 0 -> {0}", commandLineArgs.GetValue("m"));
-                Console.WriteLine("arg 1 -> {0}", commandLineArgs.GetValue("help"));
-                Console.WriteLine("hhelkp");
+                //Console.WriteLine("arg 0 -> {0}", commandLineArgs.GetValue("m"));
+                //Console.WriteLine("arg 1 -> {0}", commandLineArgs.GetValue("help"));
 
-                Console.WriteLine(args.Length.ToString());
+                //Console.WriteLine(args.Length.ToString());
 
                 /*foreach (var item in readfile("Lists/official_wordle_common.txt"))
                 {
                     Console.WriteLine(item);
                 }*/
 
-                var game = new WordleGame(true, 1, "crane","", "Lists/official_wordle_common.txt");
+                string guess = commandLineArgs.GetValue("g");
 
-                game.play_game();
+                string word = commandLineArgs.GetValue("w");
 
+                string random_string = commandLineArgs.GetValue("random");
+
+                Console.WriteLine(random_string);
+
+                bool random = false;
+
+                if (random_string != null) 
+                {
+                    random = true;
+                }
+
+                var game = new WordleGame(random, 1, guess, word, "Lists/official_wordle_common.txt");
+
+                string result = game.play_game();
+
+                //Console.WriteLine("your guess:{0}, the word:{1}, the score:{2}", "ambar", "riser", result);
+
+                Console.WriteLine();
+
+
+                // Automate below as a function
+
+                for (int i = 0; i < result.Length; i++) 
+                {
+
+                    Console.ResetColor();
+
+                    if (String.Equals(result[i], '1')) 
+                    {
+                        Console.BackgroundColor = ConsoleColor.Yellow;
+                        Console.ForegroundColor = ConsoleColor.Black;
+                    }
+                    if (String.Equals(result[i], '2')) 
+                    {
+                        Console.BackgroundColor = ConsoleColor.Green;
+                        Console.ForegroundColor = ConsoleColor.Black;
+                    }
+
+                    Console.Write(guess[i]);
+
+                }
+
+                Console.ResetColor();
+
+
+                // To future batch proggraming ->
+
+                // Fix main match function
+
+                // Word recognizing is OK, colors OK. Implement 5 tries game as standard and change limit per argument before runnning the words entropy
+
+                // Make better checks for arguments, make ifs to check mass unecessary input
+
+                // Current way to call exe -> Game.exe -g crane -w amber --random
+
+                //Console.BackgroundColor = ConsoleColor.Blue;
+                //Console.ForegroundColor = ConsoleColor.White;
+                //Console.WriteLine("White on blue.");
+                //Console.ResetColor();
 
 
                 return 0;
