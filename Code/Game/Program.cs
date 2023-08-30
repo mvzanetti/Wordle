@@ -103,6 +103,8 @@ namespace Game
 
             // This function still fails with -> g= bwosh, w = swosh. Need to fix.
 
+            // The below array represents the Word, not the Guess
+
             bool[] guesses_result = {false,false,false,false,false};
 
             // Aux is a variable to check if a match has not been made inside the inner loop. if not, we nee to put a 0.
@@ -127,15 +129,32 @@ namespace Game
                         if (guesses_result[j] == false)
                         {
 
-                            guesses_result[j] = true;
+                            // Commented the line below to insert it manually on pinpointed locations
+                            //guesses_result[j] = true;
                             if (i == j)
                             {
                                 result += "2";
+                                guesses_result[j] = true; // This line is necessary because this is standard in this loop
                                 break;
                             }
                             else
                             {
+                                // This if handles the special case where one letter comes right but comes as a yellow, and there's still a correct letter on the same spot (green). Ex: -> g= bwosh, w = swosh 
+                                if (String.Equals(guess[i], word[i]))
+                                {
+                                    result += "2"; // This line lacks the "guesses_results[j] = true"  because it's a odd appearance
+                                    break;
+                                }
+                                // This if handles the same but inverted. If not this this part, an input of g = aabaa and w = ababa would result in -> 20102, should've been 21102
+                                else if(String.Equals(guess[j], word[j]))
+                                {
+                                    result += "0"; // This line lacks the "guesses_results[j] = true"  because it's a odd appearance
+                                    break;
+
+                                }
+                                
                                 result += "1";
+                                guesses_result[j] = true; // This line is necessary because this is standard in this loop
                                 break;
                             }
                         }
