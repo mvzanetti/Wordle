@@ -58,13 +58,26 @@ namespace Game
 
     public class WordleGame
     {
+        public bool isRandomGame;
+        public int n_try;
+        public string guess;
+        public string word;
+        public string path;
+
         private bool _isRandomGame;
         private int _n_try;
         private string _guess;
         private string _word;
         private string _path;
 
-        public WordleGame(bool isRandomGame, int n_try, string guess, string word, string path) 
+        private bool flag = false;
+
+        public WordleGame(string guess, string word)
+        {
+            this.flag = true; // Maybe we won't need this approach to differentiate the xtors different calls
+        }
+
+        public WordleGame(bool isRandomGame, int n_try, string guess, string word, string path)
         {
             _isRandomGame = isRandomGame;
             _n_try = n_try;
@@ -73,12 +86,13 @@ namespace Game
             _path = path;
         }
 
-        public string play_game() 
+        public string play_game()
         {
             if (!this._isRandomGame)
             {
                 Console.WriteLine("your guess:{0}, the word:{1}, the score:{2}", this._guess, this._word, getGameResult(this._guess, this._word));
 
+                // getGameResult called twice for the same effort here, fix...            
                 return getGameResult(this._guess, this._word);
             }
             else
@@ -86,7 +100,7 @@ namespace Game
                 var random = new Random();
                 var list = new List<string>();
                 list = readfile(this._path);
-                string new_game_word = list[random.Next(0,list.Count)];
+                string new_game_word = list[random.Next(0, list.Count)];
 
                 Console.WriteLine("your guess:{0}, the word:{1}, the score:{2}", this._guess, new_game_word, getGameResult(this._guess, new_game_word));
 
@@ -96,18 +110,18 @@ namespace Game
 
 
         // Returns game result as a string of 5 numbers. First input is the guess, and the second one is the word to be tested against. Like the Wordle game, 0 means an error (grey), 1 means a correct letter but not on the spot (yellow), and 2 means a match on that spot (green).
-        private string getGameResult(string guess, string word)
+        public string getGameResult(string guess, string word)
         {
 
             string result = "";
 
-            // This function still fails with -> g= bwosh, w = swosh. Need to fix.
+            // This function still fails with -> g= bwosh, w = swosh. Need to fix. *** FIXED, MF.
 
             // The below array represents the Word, not the Guess
 
-            bool[] guesses_result = {false,false,false,false,false};
+            bool[] guesses_result = { false, false, false, false, false };
 
-            // Aux is a variable to check if a match has not been made inside the inner loop. if not, we nee to put a 0.
+            // Aux is a variable to check if a match has not been made inside the inner loop. if not, we need to put a 0.
             bool aux = false;
 
             // First loop to run on each letter separately
@@ -116,10 +130,10 @@ namespace Game
 
             // ** NEED TO IMPLEMENT CHECK ON DOUBLE LETTERS APPEARANCES
 
-            for (int i = 0; i < guess.Length; i++) 
+            for (int i = 0; i < guess.Length; i++)
             {
 
-                for (int j = 0; j < guess.Length; j++) 
+                for (int j = 0; j < guess.Length; j++)
                 {
                     aux = false;
 
@@ -146,13 +160,13 @@ namespace Game
                                     break;
                                 }
                                 // This if handles the same but inverted. If not this this part, an input of g = aabaa and w = ababa would result in -> 20102, should've been 21102
-                                else if(String.Equals(guess[j], word[j]))
+                                else if (String.Equals(guess[j], word[j]))
                                 {
                                     result += "0"; // This line lacks the "guesses_results[j] = true"  because it's a odd appearance
                                     break;
 
                                 }
-                                
+
                                 result += "1";
                                 guesses_result[j] = true; // This line is necessary because this is standard in this loop
                                 break;
@@ -160,13 +174,13 @@ namespace Game
                         }
                     }
                     // remove unnecessary else
-                    else 
+                    else
                     {
-                        
+
                     }
                     aux = true;
                 }
-                if (aux) 
+                if (aux)
                 {
                     result += "0";
                 }
@@ -181,7 +195,7 @@ namespace Game
 
         // make method to return chars locations, make method to check single instance of game, make method to play full game
 
-        private static List<string> readfile(string path)
+        public List<string> readfile(string path)
         {
             List<string> wordList = new List<string>();
 
@@ -210,6 +224,58 @@ namespace Game
                 return null;
             }
 
+        }
+
+        public void printColoredResults(string result)
+        {
+            for (int i = 0; i < result.Length; i++)
+            {
+
+                Console.ResetColor();
+
+                if (String.Equals(result[i], '1'))
+                {
+                    Console.BackgroundColor = ConsoleColor.Yellow;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                }
+                if (String.Equals(result[i], '2'))
+                {
+                    Console.BackgroundColor = ConsoleColor.Green;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                }
+
+                Console.Write(guess[i]);
+
+            }
+            Console.ResetColor();
+        }
+
+    }
+
+    public class Information_Tools 
+    {
+
+        void get_info(string word, string path) // choose better func name 
+        {
+            WordleGame game = new WordleGame(false, 1, "", "", "Lists/official_wordle_common.txt");
+
+            //List<string> list = game.readfile(path);
+
+            //Dictionary<string, string[]> keyValuePairs = new Dictionary<string, string[]>(); // change this name also
+
+            List<string> list = game.readfile(path);
+
+            Dictionary<string, List<string>> keyValuePairs = new Dictionary<string, List<string>>(); // change this name also
+
+            for (int i = 0; i < list.Count; i++) 
+            {
+                //comment only to make compiler run, fix below
+               // keyValuePairs.Add(list[i], List<string>.Add(game.getGameResult(list[i],word))); // check if is needed the string[], I think its a pre step towards the goal
+            }
+
+
+
+            return;
         }
 
     }
@@ -268,33 +334,10 @@ namespace Game
 
                 Console.WriteLine();
 
-
-                // Automate below as a function
-
-                for (int i = 0; i < result.Length; i++) 
-                {
-
-                    Console.ResetColor();
-
-                    if (String.Equals(result[i], '1')) 
-                    {
-                        Console.BackgroundColor = ConsoleColor.Yellow;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                    }
-                    if (String.Equals(result[i], '2')) 
-                    {
-                        Console.BackgroundColor = ConsoleColor.Green;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                    }
-
-                    Console.Write(guess[i]);
-
-                }
-
-                Console.ResetColor();
+                game.printColoredResults(result);
 
 
-                // To future batch proggraming ->
+                // To future batch programming ->
 
                 // Fix main match function
 
@@ -309,6 +352,13 @@ namespace Game
                 //Console.WriteLine("White on blue.");
                 //Console.ResetColor();
 
+
+                // For entropy calculations:
+
+                // Do a program that computes word by word on the list, the expected information to be given by adding all other calculations from other words, except the one we're using
+
+                // make a function that work with a string as input (later will be word_Array[i] as input). The function will loop the entire word list, and store in an array the results
+                // Later a collector inside or not of the function will sort and bucket the words into the patterns (can be a array)
 
                 return 0;
             }
